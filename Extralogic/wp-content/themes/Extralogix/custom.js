@@ -83,10 +83,6 @@ jQuery(document).ready(function($) {
 
 
 
-
-
-  
-
   // Call the function to fetch and display the quotes
   displayKanyeQuotes();
 
