@@ -1,20 +1,39 @@
+
+
+
+
+
 jQuery(document).ready(function($) {
+    // Ajax call for non-logged-in users
     $.ajax({
-        url: ajax_params.ajax_url,
-        type: 'POST',
+        url: ajaxurl,
+        type: 'GET',
         dataType: 'json',
         data: {
-            action: 'get_architecture_projects',
+            action: 'get_architecture_projects'
         },
         success: function(response) {
             if (response.success) {
                 var projects = response.data;
-                // Process the retrieved projects data as needed
+                // Process and display the projects
                 console.log(projects);
             }
-        },
+        }
     });
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
 jQuery(document).ready(function($) {
     $.ajax({
         url: kanye_api.api_url,
@@ -37,3 +56,38 @@ jQuery(document).ready(function($) {
         }
     });
 });
+
+
+
+
+  // Function to fetch quotes from the API and display them
+  function displayKanyeQuotes() {
+    var url = "https://api.kanye.rest/?count=5"; // API endpoint URL
+    fetch(url)
+      .then(response => response.json())
+      .then(data => {
+        var quotesContainer = document.getElementById("kanye-quotes");
+        quotesContainer.innerHTML = ""; // Clear the container
+
+        // Loop through the quotes and append them to the container
+        data.forEach(quote => {
+          var quoteElement = document.createElement("p");
+          quoteElement.textContent = quote.quote;
+          quotesContainer.appendChild(quoteElement);
+        });
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  }
+
+
+
+
+
+  
+
+  // Call the function to fetch and display the quotes
+  displayKanyeQuotes();
+
+
