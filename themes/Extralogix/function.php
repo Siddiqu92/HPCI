@@ -111,46 +111,97 @@ function set_projects_per_page($query) {
 }
 add_action('pre_get_posts', 'set_projects_per_page');
 
-function register_ajax_endpoint() {
-    add_action('wp_ajax_nopriv_get_architecture_projects', 'get_architecture_projects');
-    add_action('wp_ajax_get_architecture_projects', 'get_architecture_projects');
-}
-add_action('wp_loaded', 'register_ajax_endpoint');
 
-function get_architecture_projects() {
+
+
+
+// Register the Ajax endpoint
+add_action( 'wp_ajax_nopriv_get_architecture_projects', 'get_architecture_projects_callback' );
+add_action( 'wp_ajax_get_architecture_projects', 'get_architecture_projects_callback' );
+
+// Ajax callback function
+function get_architecture_projects_callback() {
+    // Check if the user is logged in
+    $user_id = get_current_user_id();
+    
+    // Set the number of projects based on the user login status
+    $number_of_projects = $user_id ? 6 : 3;
+    
+    // Query arguments
     $args = array(
-        'post_type' => 'projects',
-        'posts_per_page' => is_user_logged_in() ? 6 : 3,
-        'tax_query' => array(
+        'post_type'      => 'project',
+        'posts_per_page' => $number_of_projects,
+        'tax_query'      => array(
             array(
-                'taxonomy' => 'project-type',
-                'field' => 'slug',
-                'terms' => 'architecture',
+                'taxonomy' => 'project_type',
+                'field'    => 'slug',
+                'terms'    => 'architecture',
             ),
         ),
-        'orderby' => 'date',
-        'order' => 'DESC',
+        'orderby'        => 'date',
+        'order'          => 'DESC',
     );
-
-    $projects = get_posts($args);
-
-    $project_data = array();
-
-    foreach ($projects as $project) {
-        $project_data[] = array(
-            'id' => $project->ID,
-            'title' => $project->post_title,
-            'link' => get_permalink($project->ID),
-        );
-    }
-
+    
+    // Query the projects
+    $projects_query = new WP_Query( $args );
+    
+    // Prepare the response
     $response = array(
         'success' => true,
-        'data' => $project_data,
+        'data'    => array(),
     );
-
-    wp_send_json($response);
+    
+    // Loop through the projects and build the response data
+    if ( $projects_query->have_posts() ) {
+        while ( $projects_query->have_posts() ) {
+            $projects_query->the_post();
+            
+            // Get the project details
+            $project_id   = get_the_ID();
+            $project_title = get_the_title();
+            $project_link  = get_permalink();
+            
+            // Build the object
+            $project_object = array(
+                'id'    => $project_id,
+                'title' => $project_title,
+                'link'  => $project_link,
+            );
+            
+            // Add the object to the response data
+            $response['data'][] = $project_object;
+        }
+    }
+    
+    // Reset the post data
+    wp_reset_postdata();
+    
+    // Send the JSON response
+    wp_send_json( $response );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function enqueue_custom_scripts() {
     wp_enqueue_script('custom-script', get_template_directory_uri() . '/custom.js', array('jquery'), '1.0', true);
@@ -195,4 +246,6 @@ function enqueue_custom_scripts() {
     wp_localize_script('custom-script', 'kanye_api', array('api_url' => 'https://api.kanye.rest/'));
 }
 add_action('wp_enqueue_scripts', 'enqueue_custom_scripts');
+
+
 
