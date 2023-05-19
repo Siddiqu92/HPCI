@@ -1,35 +1,41 @@
 <?php
-get_header(); // Include the header template
+/*
+Template Name: Projects Archive
+*/
+get_header(); // Add your header template code here
 ?>
-
-<main id="main" class="site-main">
-    <div class="container">
-        <?php
-        if (have_posts()) {
-            while (have_posts()) {
-                the_post();
-                // Display the project content here
-                // You can customize the project layout as per your requirements
-                ?>
-                <h2><?php the_title(); ?></h2>
-                <div><?php the_content(); ?></div>
-                <?php
-            }
-            // Display pagination
-            the_posts_pagination(array(
-                'prev_text' => __('Previous', 'textdomain'),
-                'next_text' => __('Next', 'textdomain'),
-            ));
-        } else {
-            // If there are no projects found
-            ?>
-            <p><?php _e('No projects found.', 'textdomain'); ?></p>
-            <?php
-        }
-        ?>
-    </div>
-</main>
 
 <?php
-get_footer(); // Include the footer template
+$paged = ( get_query_var( 'paged' ) ) ? get_query_var( 'paged' ) : 1;
+$args = array(
+    'post_type'      => 'project', // Replace 'project' with your custom post type name
+    'posts_per_page' => 6,
+    'paged'          => $paged,
+);
+
+$query = new WP_Query( $args );
+
+if ( $query->have_posts() ) {
+    while ( $query->have_posts() ) {
+        $query->the_post();
+        // Display your project information here
+    }
+} else {
+    // Display a message if there are no projects found
+    echo 'No projects found.';
+}
+
+// Add pagination links
+paginate_links( array(
+    'format'    => '?paged=%#%',
+    'current'   => max( 1, $paged ),
+    'total'     => $query->max_num_pages,
+    'prev_text' => '&laquo; Previous',
+    'next_text' => 'Next &raquo;',
+) );
 ?>
+
+
+
+<?php get_footer(); // Add your footer template code here ?>
+
